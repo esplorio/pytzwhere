@@ -64,7 +64,7 @@ class tzwhere(object):
                     self.timezoneLongitudeShortcuts[degree][tzname] = \
                         tuple(self.timezoneLongitudeShortcuts[degree][tzname])
 
-    def tzNameAt(self, latitude, longitude, forceTZ=False):
+    def tzNameAt(self, latitude, longitude, forceTZ=False, delta_degrees=None):
         '''
         Let's you lookup for a given latitude and longitude the appropriate
         timezone.
@@ -73,6 +73,8 @@ class tzwhere(object):
         @forceTZ: If forceTZ is true and you can't find a valid timezone return
         the closest timezone you can find instead. Only works if the point has
         the same integer value for its degree than the timezeone
+        @delta_degrees: If forceTZ is true, this value is used to limit the
+        search radius to a preset value in degrees
         '''
 
         if forceTZ:
@@ -111,10 +113,10 @@ class tzwhere(object):
 
         if forceTZ:
             return self.__forceTZ__(possibleTimezones, latTzOptions,
-                             lngTzOptions, queryPoint)
+                                    lngTzOptions, queryPoint, delta_degrees)
 
     def __forceTZ__(self, possibleTimezones, latTzOptions,
-                    lngTzOptions, queryPoint):
+                    lngTzOptions, queryPoint, delta_degrees):
         distances = []
         if possibleTimezones:
             if len(possibleTimezones) == 1:
@@ -132,7 +134,8 @@ class tzwhere(object):
                         poly = self.unprepTimezoneNamesToPolygons[
                             tzname][polyIndex]
                         d = poly.distance(queryPoint)
-                        distances.append((d, tzname))
+                        if not delta_degrees or d <= delta_degrees:
+                            distances.append((d, tzname))
         if len(distances) > 0:
             return sorted(distances, key=lambda x: x[0])[0][1]
 
