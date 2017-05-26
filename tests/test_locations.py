@@ -63,7 +63,7 @@ class LocationTestCase(unittest.TestCase):
             ( 49.2698,   -123.1302,    'Vancouver',            None),
     )
 
-    def _test_tzwhere(self, locations, forceTZ, delta_degrees=None):
+    def _test_tzwhere(self, locations, forceTZ, tz_service=None, delta_degrees=None):
         start = datetime.datetime.now()
         if not tz_service:
             tz_service = tzwhere.tzwhere(forceTZ=forceTZ)
@@ -80,14 +80,11 @@ class LocationTestCase(unittest.TestCase):
             assert computed == expected
 
     def test_lookup(self):
-        self._test_tzwhere(self.TEST_LOCATIONS)
-
-    def test_shapely(self):
-        self._test_tzwhere(self.TEST_LOCATIONS, path=None, shapely=True)
+        self._test_tzwhere(self.TEST_LOCATIONS, forceTZ=False)
 
     def test_forceTZ(self):
-        tz_service = tzwhere.tzwhere('csv', path=None, shapely=True, forceTZ=True)
-        self._test_tzwhere(self.TEST_LOCATIONS, tz_service=tz_service, forceTZ=True)
-        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ, tz_service=tz_service, forceTZ=True)
-        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ, tz_service=tz_service, forceTZ=True, delta_degrees=1)
-        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ_DELTA_DEGREES, tz_service=tz_service, forceTZ=True, delta_degrees=0.001)
+        tz_service = tzwhere.tzwhere(forceTZ=True)
+        self._test_tzwhere(self.TEST_LOCATIONS, forceTZ=True, tz_service=tz_service)
+        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ, forceTZ=True, tz_service=tz_service)
+        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ, forceTZ=True, tz_service=tz_service, delta_degrees=1)
+        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ_DELTA_DEGREES, forceTZ=True, tz_service=tz_service, delta_degrees=0.001)
