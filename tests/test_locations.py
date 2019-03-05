@@ -54,9 +54,19 @@ class LocationTestCase(unittest.TestCase):
             ( 50.26,       -9.051,     'Far off Cornwall',     None)
     )
 
-    def _test_tzwhere(self, locations, forceTZ):
+    TEST_LOCATIONS_FORCETZ_DELTA_DEGREES = (
+            ( 35.295953,  -89.662186,  'Arlington, TN',        'America/Chicago'),
+            ( 33.58,      -85.85,      'Memphis, TN',          'America/Chicago'),
+            ( 61.17,     -150.02,      'Anchorage, AK',        'America/Anchorage'),
+            ( 40.7271,   -73.98,       'Shore Lake Michigan',  'America/New_York'),
+            ( 50.1536,   -8.051,       'Off Cornwall',         'Europe/London'),
+            ( 49.2698,   -123.1302,    'Vancouver',            None),
+    )
+
+    def _test_tzwhere(self, locations, forceTZ, tz_service=None, delta_degrees=None):
         start = datetime.datetime.now()
-        w = tzwhere.tzwhere(forceTZ=forceTZ)
+        if not tz_service:
+            tz_service = tzwhere.tzwhere(forceTZ=forceTZ)
         end = datetime.datetime.now()
         print('Initialized in: '),
         print(end - start)
@@ -64,13 +74,17 @@ class LocationTestCase(unittest.TestCase):
         template = '{0:20s} | {1:20s} | {2:20s} | {3:2s}'
         print(template.format('LOCATION', 'EXPECTED', 'COMPUTED', '=='))
         for (lat, lon, loc, expected) in locations:
-            computed = w.tzNameAt(float(lat), float(lon), forceTZ=forceTZ)
+            computed = tz_service.tzNameAt(float(lat), float(lon), forceTZ=forceTZ, delta_degrees=delta_degrees)
             ok = 'OK' if computed == expected else 'XX'
             print(template.format(loc, str(expected), str(computed), ok))
             assert computed == expected
 
     def test_lookup(self):
-        self._test_tzwhere(self.TEST_LOCATIONS,forceTZ=False)
+        self._test_tzwhere(self.TEST_LOCATIONS, forceTZ=False)
 
     def test_forceTZ(self):
-        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ,forceTZ=True)
+        tz_service = tzwhere.tzwhere(forceTZ=True)
+        self._test_tzwhere(self.TEST_LOCATIONS, forceTZ=True, tz_service=tz_service)
+        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ, forceTZ=True, tz_service=tz_service)
+        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ, forceTZ=True, tz_service=tz_service, delta_degrees=1)
+        self._test_tzwhere(self.TEST_LOCATIONS_FORCETZ_DELTA_DEGREES, forceTZ=True, tz_service=tz_service, delta_degrees=0.001)
